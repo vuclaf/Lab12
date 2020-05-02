@@ -4,11 +4,23 @@ import java.util.*;
  *
  * @author Evan Vu
  */
+
+class GraphException extends RuntimeException{
+        public GraphException( String name )
+        {
+        super( name );
+        }
+    }
+    
 public class DirectedGraph<E>
 {
+    
     class DirectedGraphNode<E>{
         E key;
-        ArrayList<DirectedGraphEdge> edges;
+        ArrayList<DirectedGraphEdge> edges=new ArrayList<DirectedGraphEdge>();
+        int scratch=0;
+        int dist=0;
+        DirectedGraphNode prev;
         
         DirectedGraphNode(E key){ this.key = key;}
         
@@ -20,6 +32,10 @@ public class DirectedGraph<E>
             }
             return first;
         }
+        
+         public void reset( ){ 
+             dist = 1000000; prev = null; scratch = 0; 
+         }
         
         @Override
         public boolean equals(Object o){
@@ -45,11 +61,68 @@ public class DirectedGraph<E>
         }
     }
     
-    List<DirectedGraphNode> list=new ArrayList<DirectedGraphNode>();
-    
-    public DirectedGraph(){
-
+    class Path implements Comparable<Path>{
+        DirectedGraphNode dest;
+        int dist;
+        
+        Path(DirectedGraphNode dest, int dist){
+            this.dest=dest;
+            this.dist=dist;
+        }
+        
+        public int compareTo(Path comp){
+            return this.dist - comp.dist;
+        }
     }
+    
+    /**
+     * Driver routine to handle unreachables and print total cost.
+     * It calls recursive routine to print shortest path to
+     * destNode after a shortest path algorithm has run.
+     */
+    public void printPath( E destKey )
+    {
+        DirectedGraphNode w = this.getByKey( destKey );
+        if( w == null )
+            throw new NoSuchElementException( "Destination vertex not found" );
+        else if( w.dist == 1000000 )
+            System.out.println( destKey + " is unreachable" );
+        else
+        {
+            System.out.print( "(Cost is: " + w.dist + ") " );
+            printPath( w );
+            System.out.println( );
+        }
+    }
+    
+    /** 
+     * Recursive routine to print shortest path to dest
+     * after running shortest path algorithm. The path
+     * is known to exist.
+     */
+    private void printPath( DirectedGraphNode dest )
+    {
+        if( dest.prev != null )
+        {
+            printPath( dest.prev );
+            System.out.print( " to " );
+        }
+        System.out.print( dest.key );
+    }
+    
+    /**
+     * Initializes the vertex output info prior to running
+     * any shortest path algorithm.
+     */
+    private void clearAll( )
+    {
+        for( DirectedGraphNode v : list )
+            v.reset( );
+    }
+    
+    
+    List<DirectedGraphNode> list=new ArrayList<DirectedGraphNode>();
+    public DirectedGraph(){}
     
     public DirectedGraphNode getByKey(E key){
         Iterator itr = list.iterator();
@@ -73,6 +146,10 @@ public class DirectedGraph<E>
         DirectedGraphNode node2 = this.getByKey(k2);
         if (node2==null || node1==null) return false;
         DirectedGraphEdge added = new DirectedGraphEdge(this.getByKey(k1),this.getByKey(k2),w);
+        if(!node1.edges.isEmpty()){
+            node1.edges.add(added);
+            return true;
+        }
         if(!node1.edges.contains(added)){
             node1.edges.add(added);
             return true;
@@ -91,6 +168,41 @@ public class DirectedGraph<E>
     }
     
     public void dijkstra(E key){
+        PriorityQueue<Path> pq = new PriorityQueue<Path>();
+        DirectedGraphNode start = this.getByKey(key);
+        if( start == null )
+            throw new NoSuchElementException( "Start DirectedGraphNode not found" );
+
+        clearAll();
+        pq.add( new Path( start, 0 ) ); start.dist = 0;
         
+        int nodesSeen = 0;
+        while( !pq.isEmpty( ) && nodesSeen < list.size( ) )
+        {
+            Path vrec = pq.remove( );
+            DirectedGraphNode v = vrec.dest;
+            if( v.scratch != 0 )  // already processed v
+                continue;
+            
+            v.scratch = 1;
+            nodesSeen++;
+            ArrayList<DirectedGraphEdge> vedges = v.edges;
+
+            for( DirectedGraphEdge e : vedges )
+            {
+                DirectedGraphNode w = e.end;
+                int cvw = e.weight;
+                
+                if( cvw < 0 )
+                    throw new GraphException( "Graph has negative edges" );
+                    
+                if( w.dist > v.dist + cvw )
+                {
+                    w.dist = v.dist +cvw;
+                    w.prev = v;
+                    pq.add( new Path( w, w.dist ) );
+                }
+            }
+        }
     }
 }
