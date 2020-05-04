@@ -2,28 +2,46 @@ import java.util.*;
 /**
  * The DirectedGraph containing directed nodes and edges
  *
+ * references: Weiss, Mark Allen. Data Structures & Problem Solving Using Java. Pearson Education, 2010.
  * @author Evan Vu
  */
 
+
+/**
+ * Exception for the class Directed Graph (Weiss, 2019)
+ */
 class GraphException extends RuntimeException{
         public GraphException( String name )
         {
         super( name );
         }
     }
-    
+
+    /** 
+     * The Directed Graph class
+     */
 public class DirectedGraph<E>
 {
-    
+    /**
+     * The class representing each node in the graph
+     * 
+     */
     class DirectedGraphNode<E>{
         E key;
         ArrayList<DirectedGraphEdge> edges=new ArrayList<DirectedGraphEdge>();
         int scratch=0;
         int dist=0;
         DirectedGraphNode prev;
-        
+        /**
+         * Constructor for the Node class
+         * @param the key of the node
+         */
         DirectedGraphNode(E key){ this.key = key;}
         
+        /**
+         * Finding the nearestNeighbor of a node
+         * @return the edge that leads to the nearest neighbor
+         */
         DirectedGraphEdge nearestNeighbor(){
             DirectedGraphEdge first = edges.get(0);
             if (first==null) return null;
@@ -33,9 +51,12 @@ public class DirectedGraph<E>
             return first;
         }
         
-         public void reset( ){ 
-             dist = 1000000; prev = null; scratch = 0; 
-         }
+        /**
+         * Reset the distance and marker before any dijkstra
+         */
+        public void reset( ){ 
+            dist = 1000000; prev = null; scratch = 0; 
+        }
         
         @Override
         public boolean equals(Object o){
@@ -45,11 +66,18 @@ public class DirectedGraph<E>
         }
     }
     
+    /**
+     * The edge class
+     */
     class DirectedGraphEdge implements Comparable<DirectedGraphEdge>{
         DirectedGraphNode start;
         DirectedGraphNode end;
         int weight;
         
+        /**
+         * Constructor for an edge object
+         * @param the node it starts from, end at and its weight
+         */
         DirectedGraphEdge(DirectedGraphNode start, DirectedGraphNode end, int weight){
             this.start=start;
             this.end=end;
@@ -61,10 +89,17 @@ public class DirectedGraph<E>
         }
     }
     
+    /**
+     * Class path for finding paths from a node to another
+     */
     class Path implements Comparable<Path>{
         DirectedGraphNode dest;
         int dist;
         
+        /**
+         * Constructor for the Path class
+         * @param where the path ends and its distance
+         */
         Path(DirectedGraphNode dest, int dist){
             this.dest=dest;
             this.dist=dist;
@@ -122,8 +157,16 @@ public class DirectedGraph<E>
     
     
     List<DirectedGraphNode> list=new ArrayList<DirectedGraphNode>();
+    /**
+     * Default constructor for the DirectedGraph class
+     */
     public DirectedGraph(){}
     
+    /**
+     * Get the Node by its key
+     * @param the wanted node's key
+     * @return the key wanted
+     */
     public DirectedGraphNode getByKey(E key){
         Iterator itr = list.iterator();
         while(itr.hasNext()){
@@ -132,7 +175,11 @@ public class DirectedGraph<E>
         }
         return null;
     }
-    
+    /**
+     * Add a new node into the graph
+     * @param the key of the added node
+     * @return true if the node is added, false if not
+     */
     public boolean addNode(E key){
         if(this.getByKey(key)==null){
             list.add(new DirectedGraphNode(key));
@@ -141,6 +188,11 @@ public class DirectedGraph<E>
         return false;
     }
     
+    /**
+     * Add a new Edge to the graph
+     * @param the edge it starts from, end at and its weight
+     * @return true if added
+     */
     public boolean addEdge(E k1, E k2, int w){
         DirectedGraphNode node1 = this.getByKey(k1);
         DirectedGraphNode node2 = this.getByKey(k2);
@@ -157,6 +209,11 @@ public class DirectedGraph<E>
         return false;
     }
     
+    /**
+     * Return an arraylist for neighbors of a node
+     * @param key of the node
+     * @return an array list of its neighbors
+     */
     public ArrayList getNeighbors(E key){
         DirectedGraphNode node = this.getByKey(key);
         ArrayList<DirectedGraphEdge> edges=node.edges;
@@ -167,8 +224,15 @@ public class DirectedGraph<E>
         return neighbors;
     }
     
+    
+    PriorityQueue<Path> pq = new PriorityQueue<Path>();
+    /**
+     * Dijkstra's algorithm for finding shortest path
+     * @param the key of the start node
+     * referenced: Weiss, Mark Allen. Data Structures & Problem Solving Using Java. Pearson Education, 2010.
+     */
     public void dijkstra(E key){
-        PriorityQueue<Path> pq = new PriorityQueue<Path>();
+        pq.clear();
         DirectedGraphNode start = this.getByKey(key);
         if( start == null )
             throw new NoSuchElementException( "Start DirectedGraphNode not found" );
@@ -203,6 +267,15 @@ public class DirectedGraph<E>
                     pq.add( new Path( w, w.dist ) );
                 }
             }
+        }
+    }
+    
+    /**
+     * Print all the shortest path from dijkstra's
+     */
+    public void printPathAll(){
+    for(Path path:this.pq){
+            System.out.print(path.dest.key + " " + path.dist);
         }
     }
 }

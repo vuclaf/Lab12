@@ -1,0 +1,8 @@
+#BlueJ class context
+comment0.target=GraphExperiment
+comment0.text=\n\ GraphExperiment\ class\ to\ receive\ input\ and\ run\ experiments\n\n\ @author\ EvanVu\n
+comment1.params=
+comment1.target=GraphExperiment()
+comment2.params=args
+comment2.target=void\ main(java.lang.String[])
+numComments=3
